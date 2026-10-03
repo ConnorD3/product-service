@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Client Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .config-section {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #d39e00;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #bd2130;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .actions button {
+            margin-right: 5px;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        #status {
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        #status.success {
+            display: block;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        #status.error {
+            display: block;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        #status.info {
+            display: block;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row > div {
+            flex: 1;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+
+        #lastRequest {
+            display: none;
+        }
+
+        #lastRequest.visible {
+            display: block;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .method-GET { background: #61affe; color: white; }
+        .method-POST { background: #49cc90; color: white; }
+        .method-PUT { background: #fca130; color: white; }
+        .method-DELETE { background: #f93e3e; color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>REST API Client Demo</h1>
+    <p>This client demonstrates how to interact with a REST API using JavaScript's <code>fetch()</code> API.</p>
+
+    <!-- API Configuration -->
+    <div class="section config-section">
+        <h2>API Configuration</h2>
+        <label for="apiUrl">API Base URL:</label>
+        <input type="text" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000 or https://your-app.azurewebsites.net">
+        <p style="margin: 5px 0 15px 0; font-size: 13px; color: #555;">
+            <strong>Local:</strong> Use <code>http://localhost:8000</code> |
+            <strong>Azure:</strong> Use <code>https://&lt;your-app-name&gt;.azurewebsites.net</code>
+        </p>
+        <button class="btn-primary" onclick="checkHealth()">Check Health</button>
+        <button class="btn-secondary" onclick="loadUsers()">Refresh Users</button>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="status"></div>
+
+    <!-- Last Request/Response (Educational) -->
+    <div id="lastRequest" class="section">
+        <h2>Last HTTP Request/Response</h2>
+        <p><span id="requestMethod" class="method-badge"></span><span id="requestUrl"></span></p>
+        <div id="requestBody"></div>
+        <strong>Response:</strong>
+        <div class="code-block" id="responseBody"></div>
+    </div>
+
+    <!-- Users List -->
+    <div class="section">
+        <h2>Users List</h2>
+        <p>GET <code>/users</code> - Retrieves all users from the API</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersTable">
+                <tr>
+                    <td colspan="4" class="empty-state">Click "Refresh Users" to load data</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create User Form -->
+    <div class="section">
+        <h2>Create New User</h2>
+        <p>POST <code>/users</code> - Creates a new user with the provided data</p>
+        <div class="form-row">
+            <div>
+                <label for="newName">Name (required):</label>
+                <input type="text" id="newName" placeholder="Enter name">
+            </div>
+            <div>
+                <label for="newAge">Age (optional):</label>
+                <input type="number" id="newAge" placeholder="Enter age" min="0">
+            </div>
+        </div>
+        <button class="btn-success" onclick="createUser()">Create User</button>
+    </div>
+
+    <!-- Update User Form -->
+    <div class="section">
+        <h2>Update User</h2>
+        <p>PUT <code>/users/&lt;id&gt;</code> - Updates an existing user (click "Edit" on a user above)</p>
+        <div class="form-row">
+            <div>
+                <label for="editId">User ID:</label>
+                <input type="number" id="editId" placeholder="User ID" readonly>
+            </div>
+            <div>
+                <label for="editName">Name:</label>
+                <input type="text" id="editName" placeholder="Enter name">
+            </div>
+            <div>
+                <label for="editAge">Age:</label>
+                <input type="number" id="editAge" placeholder="Enter age" min="0">
+            </div>
+        </div>
+        <button class="btn-warning" onclick="updateUser()">Update User</button>
+        <button class="btn-secondary" onclick="clearEditForm()">Clear</button>
+    </div>
+
+    <script>
+        // Get the API base URL from the input field
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.replace(/\/$/, ''); // Remove trailing slash
+        }
+
+        // Display status messages to the user
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = type; // 'success', 'error', or 'info'
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                status.className = '';
+            }, 5000);
+        }
+
+        // Display the last HTTP request/response for educational purposes
+        function showLastRequest(method, url, requestBody, responseBody, statusCode) {
+            const container = document.getElementById('lastRequest');
+            container.classList.add('visible');
+
+            document.getElementById('requestMethod').textContent = method;
+            document.getElementById('requestMethod').className = `method-badge method-${method}`;
+            document.getElementById('requestUrl').textContent = url;
+
+            const reqBodyEl = document.getElementById('requestBody');
+            if (requestBody) {
+                reqBodyEl.innerHTML = `<strong>Request Body:</strong><div class="code-block">${JSON.stringify(requestBody, null, 2)}</div>`;
+            } else {
+                reqBodyEl.innerHTML = '';
+            }
+
+            const respText = responseBody ? JSON.stringify(responseBody, null, 2) : '(empty response)';
+            document.getElementById('responseBody').textContent = `Status: ${statusCode}\n\n${respText}`;
+        }
+
+        // Check API health - GET /health
+        async function checkHealth() {
+            const url = `${getApiUrl()}/health`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                showLastRequest('GET', url, null, data, response.status);
+
+                if (response.ok) {
+                    showStatus(`API is healthy! Status: ${data.status}`, 'success');
+                } else {
+                    showStatus('API returned an error', 'error');
+                }
+            } catch (error) {
+                showStatus(`Cannot connect to API: ${error.message}. Make sure the Flask server is running.`, 'error');
+                showLastRequest('GET', url, null, { error: error.message }, 'Network Error');
+            }
+        }
+
+        // Load all users - GET /users
+        async function loadUsers() {
+            const url = `${getApiUrl()}/users`;
+
+            try {
+                const response = await fetch(url);
+                const users = await response.json();
+
+                showLastRequest('GET', url, null, users, response.status);
+
+                const tbody = document.getElementById('usersTable');
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No users found. Create one below!</td></tr>';
+                } else {
+                    tbody.innerHTML = users.map(user => `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${escapeHtml(user.name)}</td>
+                            <td>${user.age}</td>
+                            <td class="actions">
+                                <button class="btn-warning" onclick="editUser(${user.id}, '${escapeHtml(user.name)}', ${user.age})">Edit</button>
+                                <button class="btn-danger" onclick="deleteUser(${user.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                showStatus(`Loaded ${users.length} user(s)`, 'success');
+            } catch (error) {
+                showStatus(`Error loading users: ${error.message}`, 'error');
+            }
+        }
+
+        // Create a new user - POST /users
+        async function createUser() {
+            const name = document.getElementById('newName').value.trim();
+            const age = document.getElementById('newAge').value;
+
+            if (!name) {
+                showStatus('Name is required!', 'error');
+                return;
+            }
+
+            const url = `${getApiUrl()}/users`;
+            const body = { name };
+            if (age) {
+                body.age = parseInt(age);
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                showLastRequest('POST', url, body, data, response.status);
+
+                if (response.ok) {
+                    showStatus(`User "${data.name}" created with ID ${data.id}!`, 'success');
+                    document.getElementById('newName').value = '';
+                    document.getElementById('newAge').value = '';
+                    loadUsers(); // Refresh the list
+                } else {
+                    showStatus('Failed to create user', 'error');
+                }
+            } catch (error) {
+                showStatus(`Error creating user: ${error.message}`, 'error');
+            }
+        }
+
+        // Populate the edit form with user data
+        function editUser(id, name, age) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editAge').value = age;
+
+            // Scroll to edit form
+            document.getElementById('editId').scrollIntoView({ behavior: 'smooth' });
+
+            showStatus(`Editing user ${id}. Make changes and click "Update User".`, 'info');
+        }
+
+        // Update a user - PUT /users/<id>
+        async function updateUser() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value.trim();
+            const age = document.getElementById('editAge').value;
+
+            if (!id) {
+                showStatus('Please select a user to edit first (click "Edit" button)', 'error');
+                return;
+            }
+
+            if (!name) {
+                showStatus('Name is required!', 'error');
+                return;
+            }
+
+            const url = `${getApiUrl()}/users/${id}`;
+            const body = {
+                name,
+                age: parseInt(age) || 0
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showLastRequest('PUT', url, body, data, response.status);
+                    showStatus(`User ${id} updated successfully!`, 'success');
+                    clearEditForm();
+                    loadUsers(); // Refresh the list
+                } else if (response.status === 404) {
+                    showLastRequest('PUT', url, body, { error: 'Not Found' }, response.status);
+                    showStatus(`User ${id} not found!`, 'error');
+                } else {
+                    showStatus('Failed to update user', 'error');
+                }
+            } catch (error) {
+                showStatus(`Error updating user: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete a user - DELETE /users/<id>
+        async function deleteUser(id) {
+            if (!confirm(`Are you sure you want to delete user ${id}?`)) {
+                return;
+            }
+
+            const url = `${getApiUrl()}/users/${id}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'DELETE'
+                });
+
+                showLastRequest('DELETE', url, null, null, response.status);
+
+                if (response.ok || response.status === 204) {
+                    showStatus(`User ${id} deleted successfully!`, 'success');
+                    loadUsers(); // Refresh the list
+                } else {
+                    showStatus('Failed to delete user', 'error');
+                }
+            } catch (error) {
+                showStatus(`Error deleting user: ${error.message}`, 'error');
+            }
+        }
+
+        // Clear the edit form
+        function clearEditForm() {
+            document.getElementById('editId').value = '';
+            document.getElementById('editName').value = '';
+            document.getElementById('editAge').value = '';
+        }
+
+        // Escape HTML to prevent XSS attacks
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load users when page loads (optional - commented out to let students click manually)
+        // window.onload = loadUsers;
+    </script>
+</body>
+</html>

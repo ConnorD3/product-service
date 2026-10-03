@@ -1,0 +1,71 @@
+# GET all tasks
+GET https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks
+Accept: application/json
+
+###
+
+# GET a specific task by ID
+GET https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks/1
+Accept: application/json
+
+###
+
+# GET request a task that does not exist
+GET https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks/53
+Accept: application/json
+
+###
+
+# POST create a new task
+POST https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks
+Content-Type: application/json
+
+{
+  "title": "Create README.md",
+  "description": "Write a report located within the README.me file within the remote repository."
+  "user_id": 2
+}
+
+###
+
+# POST a task with a missing title
+POST https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks
+Content-Type: application/json
+
+{
+    "description": "Untitled Task."
+    "user_id": 1
+}
+
+###
+
+# POST a task with a missing user_id
+POST https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks
+Content-Type: application/json
+
+{
+    "title": "Non User Task"
+    "description": "Task."
+}
+
+###
+
+# PUT update a task by ID
+PUT https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Updated task",
+  "user_id": 2
+}
+
+###
+
+# DELETE a task by ID
+DELETE https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/tasks/1
+
+###
+
+# GET tasks assigned to specific user
+GET https://assignment1-222-e0bfd7ardabcdhf3.belgiumcentral-01.azurewebsites.net/users/2/tasks
+Accept: application/json
